@@ -21,10 +21,22 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    testCompile 'junit:junit:4.12'
+
+    //Some standard Google Lib stuff
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.1'
-    testCompile 'junit:junit:4.12'
+
+    // Firebase includes. Need more? GOTO:
+    // https://firebase.google.com/docs/android/setup#available_libraries
+    // CRITICAL!!: BEFORE ANYTHING, make sure you create your Firebase project online and
+    // add the google-services.json to the /app folder
+    compile 'com.google.firebase:firebase-core:9.6.1'
+    compile 'com.google.firebase:firebase-auth:9.6.1'
 }
+
+apply plugin: 'com.google.gms.google-services' //for Firebase

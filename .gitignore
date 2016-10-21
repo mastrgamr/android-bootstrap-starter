@@ -8,3 +8,6 @@
 /build
 /captures
 .externalNativeBuild
+
+#ignore the firebase config file
+app/google-services.json
