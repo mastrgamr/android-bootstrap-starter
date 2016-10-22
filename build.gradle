@@ -3,12 +3,10 @@
 buildscript {
     repositories {
         jcenter()
+        mavenLocal() //Safe to remove if not using twitter sign-in
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.2'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
 
         //Required for Firebase
         classpath 'com.google.gms:google-services:3.0.0'
@@ -18,6 +16,9 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        // safe to remove next 2 lines if not using twitter sign-in
+        maven { url 'https://maven.fabric.io/public' }
+        mavenLocal()
     }
 }
 

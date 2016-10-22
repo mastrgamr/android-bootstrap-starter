@@ -11,3 +11,6 @@
 
 #ignore the firebase config file
 app/google-services.json
+
+#developers secret shit
+porn.xml

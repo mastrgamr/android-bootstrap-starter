@@ -31,6 +31,15 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.1'
 
+    // Google [for authentication]
+    compile 'com.google.android.gms:play-services-auth:9.6.1'
+
+    // Twitter Android SDK [only required for Twitter Login]
+    // Source: https://fabric.io/kits/android/twitterkit/install
+    compile('com.twitter.sdk.android:twitter-core:2.1.0@aar') {
+        transitive = true;
+    }
+
     // Firebase includes. Need more? GOTO:
     // https://firebase.google.com/docs/android/setup#available_libraries
     // CRITICAL!!: BEFORE ANYTHING, make sure you create your Firebase project online and
