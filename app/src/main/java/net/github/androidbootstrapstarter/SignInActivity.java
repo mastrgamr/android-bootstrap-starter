@@ -57,12 +57,12 @@ public class SignInActivity
 
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
-    private SignInButton googleLogin;
 
-    private GoogleApiClient mGoogleApiClient;
     private FirebaseAuth mFirebaseAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
+    private GoogleApiClient mGoogleApiClient;
 
+    // Sign In Buttons
+    private SignInButton googleLogin;
     private TwitterLoginButton twitterLogin;
 
     @Override
@@ -77,7 +77,7 @@ public class SignInActivity
 
         setContentView(R.layout.activity_sign_in);
 
-        // Assign fields
+        // Initialize activity elements
         googleLogin = (SignInButton) findViewById(R.id.google_login);
         twitterLogin = (TwitterLoginButton) findViewById(R.id.twitter_login);
         twitterLogin.setCallback(new Callback<TwitterSession>() {
@@ -107,70 +107,6 @@ public class SignInActivity
 
         // Initialize FirebaseAuth
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
-                    // User is signed out
-                    Log.d(TAG, "onAuthStateChanged:signed_out");
-                }
-            }
-        };
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mFirebaseAuth.addAuthStateListener(mAuthListener);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            mFirebaseAuth.removeAuthStateListener(mAuthListener);
-        }
-    }
-
-    // TODO - (unused method) come back to this
-    private void handleFirebaseAuthResult(AuthResult authResult) {
-        if (authResult != null) {
-            // Welcome the user
-            FirebaseUser user = authResult.getUser();
-            Toast.makeText(this, "Welcome " + user.getEmail(), Toast.LENGTH_SHORT).show();
-
-            // Go back to the main activity
-            startActivity(new Intent(this, MainActivity.class));
-        }
-    }
-
-    private void handleTwitterSession(TwitterSession session) {
-        Log.d(TAG, "handleTwitterSession:" + session);
-
-        AuthCredential credential = TwitterAuthProvider.getCredential(
-                session.getAuthToken().token,
-                session.getAuthToken().secret);
-
-        mFirebaseAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
-
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "signInWithCredential", task.getException());
-                            Toast.makeText(SignInActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
     }
 
     @Override
@@ -182,11 +118,6 @@ public class SignInActivity
             default:
                 return;
         }
-    }
-
-    private void signIn() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
@@ -210,9 +141,34 @@ public class SignInActivity
         }
     }
 
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
+        // be available.
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
+        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
+    }
+
+    // TODO - (unused method) come back to this
+    private void handleFirebaseAuthResult(AuthResult authResult) {
+        if (authResult != null) {
+            // Welcome the user
+            FirebaseUser user = authResult.getUser();
+            Toast.makeText(this, "Welcome " + user.getEmail(), Toast.LENGTH_SHORT).show();
+
+            // Go back to the main activity
+            startActivity(new Intent(this, MainActivity.class));
+        }
+    }
+
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        final AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         mFirebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -228,21 +184,42 @@ public class SignInActivity
                                     Toast.LENGTH_SHORT).show();
                         } else {
 
-                            // TODO - make toast optional via Intent/Bundle pass-in
+                            // TODO - make toast optional via Intent/Bundle pass-in?
                             Toast.makeText(SignInActivity.this, "Sign in Successful", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                            setResult(1);
                             finish();
                         }
                     }
                 });
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // An unresolvable error has occurred and Google APIs (including Sign-In) will not
-        // be available.
-        Log.d(TAG, "onConnectionFailed:" + connectionResult);
-        Toast.makeText(this, "Google Play Services error.", Toast.LENGTH_SHORT).show();
-    }
+    private void handleTwitterSession(TwitterSession session) {
+        Log.d(TAG, "handleTwitterSession:" + session);
 
+        AuthCredential credential = TwitterAuthProvider.getCredential(
+                session.getAuthToken().token,
+                session.getAuthToken().secret);
+
+        mFirebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "signInWithCredential", task.getException());
+                            Toast.makeText(SignInActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            // TODO - make toast optional via Intent/Bundle pass-in?
+                            Toast.makeText(SignInActivity.this, "Sign in Successful", Toast.LENGTH_SHORT).show();
+                            setResult(1);
+                            finish();
+                        }
+                    }
+                });
+    }
 }
