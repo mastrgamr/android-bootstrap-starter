@@ -25,6 +25,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -36,6 +42,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -64,6 +71,9 @@ public class SignInActivity
     // Sign In Buttons
     private SignInButton googleLogin;
     private TwitterLoginButton twitterLogin;
+    private LoginButton facebookLogin;
+
+    private CallbackManager fbCallbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +90,32 @@ public class SignInActivity
         // Initialize activity elements
         googleLogin = (SignInButton) findViewById(R.id.google_login);
         twitterLogin = (TwitterLoginButton) findViewById(R.id.twitter_login);
+        facebookLogin = (LoginButton) findViewById(R.id.facebook_login);
+
+        // Initialize Facebook Callback info
+        fbCallbackManager = CallbackManager.Factory.create();
+        facebookLogin.setReadPermissions("email", "public_profile");
+        facebookLogin.registerCallback(fbCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                Log.d(TAG, "facebook:onSuccess:" + loginResult);
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                Log.d(TAG, "facebook:onCancel");
+                // ...
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Log.d(TAG, "facebook:onError", error);
+                // ...
+            }
+        });
+
+        // Initialize Twitter Callback info
         twitterLogin.setCallback(new Callback<TwitterSession>() {
             @Override
             public void success(Result<TwitterSession> result) {
@@ -127,6 +163,10 @@ public class SignInActivity
         // Handle Twitter button login
         twitterLogin.onActivityResult(requestCode, resultCode, data); // Recommend to remove if not using the twitter login
 
+        // Handle Twitter button login
+        fbCallbackManager.onActivityResult(requestCode, resultCode, data); // Recommend to remove if not using the facebook login
+
+        // Handle Google button login
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -215,6 +255,33 @@ public class SignInActivity
                                     Toast.LENGTH_SHORT).show();
                         } else {
                             // TODO - make toast optional via Intent/Bundle pass-in?
+                            Toast.makeText(SignInActivity.this, "Sign in Successful", Toast.LENGTH_SHORT).show();
+                            setResult(1);
+                            finish();
+                        }
+                    }
+                });
+    }
+
+    // Via firebase docs: https://firebase.google.com/docs/auth/android/facebook-login
+    private void handleFacebookAccessToken(AccessToken token) {
+        Log.d(TAG, "handleFacebookAccessToken:" + token);
+
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        mFirebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "signInWithCredential", task.getException());
+                            Toast.makeText(SignInActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
                             Toast.makeText(SignInActivity.this, "Sign in Successful", Toast.LENGTH_SHORT).show();
                             setResult(1);
                             finish();

@@ -23,16 +23,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        android:layout_above="@+id/twitter_login"
+        android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="16dp"/>
 
     <com.twitter.sdk.android.core.identity.TwitterLoginButton
         android:id="@+id/twitter_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/google_login"
+        android:layout_marginBottom="16dp" />
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/facebook_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/twitter_login"
         android:layout_alignParentStart="true"
-        android:layout_marginBottom="233dp" />
+        android:layout_marginBottom="16dp" />
 
 </RelativeLayout>

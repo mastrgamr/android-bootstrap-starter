@@ -40,6 +40,9 @@ dependencies {
         transitive = true;
     }
 
+    // For Facebook authentication
+    compile 'com.facebook.android:facebook-android-sdk:[4,5)'
+
     // Firebase includes. Need more? GOTO:
     // https://firebase.google.com/docs/android/setup#available_libraries
     // CRITICAL!!: BEFORE ANYTHING, make sure you create your Firebase project online and
